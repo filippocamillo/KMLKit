@@ -54,13 +54,17 @@ open class KMLParser: NSObject, XMLParserDelegate {
     public static func parseKMZ(file: URL) throws -> KMLRoot {
         
         let kmz = try Archive(url: file, accessMode: .read)
+
+	    guard let kmzUnwrapped = kmz else {
+            throw ParsingError.failedToReadFile(file)
+	    }
         
         let kmlParser = KMLParser()
         
         var innerDoc: KMLRoot?
-        for entry in kmz {
+        for entry in kmzUnwrapped {
             if entry.path.hasSuffix(".kml") {
-                let _ = try kmz.extract(entry, consumer: { (data) in
+                let _ = try kmzUnwrapped.extract(entry, consumer: { (data) in
                     innerDoc = try kmlParser.parse(data: data)
                 })
                 break
